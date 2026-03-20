@@ -32,6 +32,25 @@ export class Engine {
     return results;
   }
 
+  public addComponent(entity: Entity, component: Component) {
+    const type = (component.constructor as any).type;
+    if (!this.components.has(type)) {
+      this.components.set(type, new Map());
+    }
+    this.components.get(type)!.set(entity, component);
+  }
+
+  public removeComponent(entity: Entity, componentClass: any): void {
+    const store = this.components.get(componentClass.type);
+    if (store) {
+      const component = store.get(entity);
+      if (component) {
+        component.destroy();
+        store.delete(entity);
+      }
+    }
+  }
+
   public addSystem(system: System){
     this.systems.push(system);
   }
