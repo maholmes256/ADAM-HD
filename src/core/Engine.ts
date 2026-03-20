@@ -9,6 +9,13 @@ export class Engine {
     return this.nextEntityId++;
   }
 
+  public destroyEntity(entity: Entity): void {
+    // Remove all components associated with this entity
+    for (const store of this.components.values()) {
+      store.delete(entity);
+    }
+  } 
+
   public getComponent<T extends Component>(entity: Entity, componentClass: ComponentClass<T>) {
     return this.components.get(componentClass.componentType)?.get(entity);
   }
