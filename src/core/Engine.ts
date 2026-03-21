@@ -25,6 +25,7 @@ export class Engine {
 
     const firstType = componentClasses[0].componentType;
     const store = this.components.get(firstType);
+
     if (!store) return [];
 
     let results = Array.from(store.keys());
@@ -39,8 +40,8 @@ export class Engine {
     return results;
   }
 
-  public addComponent(entity: Entity, component: Component) {
-    const type = (component.constructor as any).type;
+  public addComponent(entity: Entity, component: Component) : void{
+    const type = (component.constructor as any).componentType;
     if (!this.components.has(type)) {
       this.components.set(type, new Map());
     }

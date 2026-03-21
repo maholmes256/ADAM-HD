@@ -1,7 +1,7 @@
 import { Component } from "../core/types";
 
-export class Transform extends Component {
-  static type = 'Transform';
+export default class Transform extends Component {
+  static componentType = 'Transform';
   
   public x: number = 0;
   public y: number = 0;
