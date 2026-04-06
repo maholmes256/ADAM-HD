@@ -1,7 +1,8 @@
 export const TILE_WIDTH = 32;
 export const TILE_HEIGHT = 16;
 export const VIEWPORT_PADDING = 0.9;
-export const PLAYER_SPEED = 4;
+export const CAMERA_VIEW_FRACTION = 0.3;
+export const PLAYER_SPEED = 8;
 export const PLAYER_START_X = 5;
 export const PLAYER_START_Y = 5;
 
@@ -11,8 +12,12 @@ export function getViewportScale(
   mapWidth: number,
   mapHeight: number,
 ) {
-  const worldWidth = (mapWidth + mapHeight) * (TILE_WIDTH / 2) + TILE_WIDTH;
-  const worldHeight = (mapWidth + mapHeight) * (TILE_HEIGHT / 2) + TILE_WIDTH;
+  const visibleMapWidth = mapWidth * CAMERA_VIEW_FRACTION;
+  const visibleMapHeight = mapHeight * CAMERA_VIEW_FRACTION;
+  const worldWidth =
+    (visibleMapWidth + visibleMapHeight) * (TILE_WIDTH / 2) + TILE_WIDTH;
+  const worldHeight =
+    (visibleMapWidth + visibleMapHeight) * (TILE_HEIGHT / 2) + TILE_WIDTH;
 
   return (
     Math.max(
