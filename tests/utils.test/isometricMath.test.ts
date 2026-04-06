@@ -1,5 +1,5 @@
 import { assertType, describe, expectTypeOf, it, expect } from 'vitest'
-import { isometricToScreen, screenToIsometric } from '../src/utils/isometricMath.ts'
+import { isometricToScreen, screenToIsometric } from '../../src/utils/isometricMath.ts'
 describe("isometricToScreen default function", () => {
   it("should return x===0, y===1, when (1,1) is entered", () => {
     expect(isometricToScreen(1, 1)).toStrictEqual({x: 0, y:1});
