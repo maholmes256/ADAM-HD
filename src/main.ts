@@ -1,5 +1,4 @@
-import { Application, Assets, Sprite } from "pixi.js";
-import { Engine } from "./core/Engine";
+import bootstrap from "./bootstrapGame";
 
 const world = new Engine();
 
@@ -10,10 +9,4 @@ const world = new Engine();
   // Initialize the application
   await app.init({ background: "#1099bb", resizeTo: window });
 
-  // Append the application canvas to the document body
-  document.getElementById("pixi-container")!.appendChild(app.canvas);
-
-  // Listen for animate update
-  app.ticker.add((time) => {
-  });
-})();
+void bootstrap();
