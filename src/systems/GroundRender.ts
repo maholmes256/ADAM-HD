@@ -27,6 +27,8 @@ export default class GroundRenderSystem implements System {
 
         const tileDef = tileRegistry[tileId];
         const sprite = new Sprite(Texture.from(tileDef.texture));
+        // Keep tile sprites pixelated
+        sprite.texture.source.scaleMode = "nearest";
         sprite.anchor.set(0.5, 0.75);
         sprite.zIndex = (x + y) * 10;
         this.container.addChild(sprite);
