@@ -1,4 +1,4 @@
-import { assertType, describe, expectTypeOf, it, expect } from 'vitest'
+import { describe, expectTypeOf, it, expect } from 'vitest'
 import { isometricToScreen, screenToIsometric } from '../../src/utils/isometricMath.ts'
 
 describe("isometricToScreen default function", () => {
