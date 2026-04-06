@@ -1,8 +1,10 @@
-import { Application, Container } from "pixi.js";
+import { AnimatedSprite, Application, Container } from "pixi.js";
+import PlayerControlled from "../components/PlayerControlled";
 import { System } from "../core/types";
 import { Engine } from "../core/Engine";
 import Renderable from "../components/IsoSprite";
 import Transform from "../components/Transform";
+import { syncPlayerSpriteAnimation } from "../animation/playerSprite";
 import { getViewportScale, TILE_HEIGHT, TILE_WIDTH } from "../config";
 import { defaultMap } from "../data/defaultMap";
 import { isometricToScreen } from "../utils/isometricMath";
@@ -42,12 +44,23 @@ export default class RenderSystem implements System {
     for (const entity of entities) {
       const transform = engine.getComponent(entity, Transform)! as Transform;
       const visual = engine.getComponent(entity, Renderable)! as Renderable;
+      const playerState = engine.getComponent(entity, PlayerControlled) as
+        | PlayerControlled
+        | undefined;
 
       const screenPos = isometricToScreen(transform.x, transform.y, transform.z, TILE_WIDTH, TILE_HEIGHT);
 
       visual.sprite.x = originX + (screenPos.x - cameraScreen.x) * scale;
       visual.sprite.y = originY + (screenPos.y - cameraScreen.y) * scale;
       visual.sprite.scale.set(scale);
+
+      if (playerState && visual.sprite instanceof AnimatedSprite) {
+        syncPlayerSpriteAnimation(
+          visual.sprite,
+          playerState.facing,
+          playerState.isMoving,
+        );
+      }
 
       visual.sprite.zIndex = (transform.x + transform.y) * 10;
 
