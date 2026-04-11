@@ -23,7 +23,7 @@ Built by **Team ADAM-HD** at San Jose State University as part of Software Engin
 
 ## Overview
 
-Number Raiders is a single-player online game built as a game-based learning platform. The core loop puts students inside an explorable map where math problems are woven directly into the gameplay rather than presented as a separate quiz layer. When a player runs into an obstacle, a math problem is generated on the spot and displayed as an overlay. Solving it correctly clears the path forward. Failing uses up a retry, and running out of retries ends the run.
+Number Raiders is a single-player online game built as a game-based learning platform. The core loop puts students inside an explorable map where math problems are woven directly into the gameplay. When a player runs into an obstacle, a math problem is generated on the spot and displayed as an overlay. Solving it correctly clears the path forward. Failing uses up a retry, and running out of retries ends the run.
 
 The platform is built for three audiences. Students play the game and track their own achievements. Parents can view progress reports across sessions. Educators have a dedicated portal to monitor student performance and growth over time. All three roles share a single Firebase backend, with row-level security ensuring each user only sees the data they are meant to see.
 
