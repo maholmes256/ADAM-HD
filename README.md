@@ -1,6 +1,6 @@
 # Number Raiders
 
-**Number Raiders** is a browser-based 2D math adventure game for elementary school students ages 6 to 10. Players explore an isometric world, collide with obstacles that trigger math challenges, and earn rewards as they progress through increasingly difficult levels. The game is designed to reinforce addition, subtraction, and multiplication skills through active, game-driven practice rather than passive drills.
+**Number Raiders** is a browser-based 2D math adventure game for elementary school students ages 6 to 10. Players explore an isometric world, collide with obstacles that trigger math challenges, and earn rewards as they progress through increasingly difficult levels. The game is designed to reinforce addition, subtraction, and multiplication skills through active, game-driven practice.
 
 Built by **Team ADAM-HD** at San Jose State University as part of Software Engineering I.
 
