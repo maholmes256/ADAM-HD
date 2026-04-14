@@ -749,14 +749,6 @@ const ACHIEVEMENTS = [
   },
 ];
 
-const PROBLEMS = [
-  { q: "14 × 7", hint: "Raiders calc", a: 98 },
-  { q: "256 / 8", hint: "Temple split", a: 32 },
-  { q: "37 + 48", hint: "Relic count", a: 85 },
-  { q: "15 x 15", hint: "Boulder area", a: 225 },
-  { q: "144 / 12", hint: "Map scale", a: 12 },
-];
-
 function PixelBar({ pct, colorClass = "bar-sand", label, showPct = true }) {
   return (
     <div>
@@ -1071,7 +1063,6 @@ function StudentDashScreen({ onNavigate }) {
 }
 
 function GameScreen({ onNavigate }) {
-  const [pidx, setPidx] = useState(0);
   const [answer, setAnswer] = useState("");
   const [state, setState] = useState("idle");
   const [feedback, setFeedback] = useState(null);
@@ -1081,7 +1072,6 @@ function GameScreen({ onNavigate }) {
   const [showAchieve, setShowAchieve] = useState(false);
   const [turn, setTurn] = useState(0);
   const inputRef = useRef(null);
-  const problem = PROBLEMS[pidx % PROBLEMS.length];
 
   useEffect(() => {
     const t = setInterval(() => setTimeLeft((p) => (p > 0 ? p - 1 : 0)), 1000);
@@ -1089,14 +1079,14 @@ function GameScreen({ onNavigate }) {
   }, []);
   useEffect(() => {
     inputRef.current?.focus();
-  }, [pidx]);
+  }, []);
 
   function submit(e) {
     e.preventDefault();
     const val = parseInt(answer.trim(), 10);
     if (isNaN(val)) return;
     setTurn((t) => t + 1);
-    if (val === problem.a) {
+    if (true) {
       setState("correct");
       setFeedback("CORRECT! +100 XP");
       const ns = score + 1;
@@ -1106,7 +1096,6 @@ function GameScreen({ onNavigate }) {
         setState("idle");
         setFeedback(null);
         setAnswer("");
-        setPidx((i) => i + 1);
       }, 900);
     } else {
       setState("wrong");
@@ -1226,11 +1215,6 @@ function GameScreen({ onNavigate }) {
       {/* Battle */}
       <div className="grid-2" style={{ gap: 18 }}>
         <div>
-          <div className="problem-panel" style={{ marginBottom: 16 }}>
-            <div className="problem-flavor">★ {problem.hint} ★</div>
-            <div className="problem-text">{problem.q} = ?</div>
-          </div>
-
           <div className="dialogue-box" style={{ padding: "14px 16px" }}>
             <div className="flex gap-12" style={{ alignItems: "center" }}>
               <div style={{ flexShrink: 0 }}>
@@ -1262,8 +1246,7 @@ function GameScreen({ onNavigate }) {
                 marginTop: 8,
               }}
             >
-              TURN {String(turn + 1).padStart(3, "0")} | PROBLEM {pidx + 1} OF{" "}
-              {PROBLEMS.length}
+              TURN {String(turn + 1).padStart(3, "0")}
             </div>
           </div>
         </div>
