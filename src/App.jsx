@@ -1,5 +1,5 @@
 import NumberRaiders from "./components/ui/NumberRaiders";
-import ProblemGeneration from "./components/ui/ProblemOverlay";
+import ProblemGeneration from "./components/ui/ProblemGeneration";
 import { useState } from "react";
 
 export default function App() {
