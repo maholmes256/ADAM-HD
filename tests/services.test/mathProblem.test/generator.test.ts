@@ -28,16 +28,15 @@ describe("generateProblem check equation", () => {
     [1, 11],
     [2,21],
     [3,31],
-
   ]) ("generateProblem(%i) should return with an appropriate operation value", (a, expected) => {
-      
       
     const p = generateProblem(a);  
     console.log(p);
       // @ts-ignore
-      expect(p.expr?.op).toBeOneOf(['+', '-', '*', '/']);
+    expect(p.expr?.op).toBeOneOf(['+', '-', '*', '/']);
       // @ts-ignore
-      console.log(p.expr?.op);
+    console.log(p.expr?.op);
+    expect(p.problemId).toBeTypeOf("string");
 
   }); 
 }); 
