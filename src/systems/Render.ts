@@ -2,7 +2,7 @@ import { AnimatedSprite, Application, Container } from "pixi.js";
 import PlayerControlled from "../components/PlayerControlled";
 import { System } from "../core/types";
 import { Engine } from "../core/Engine";
-import Renderable from "../components/IsoSprite";
+import IsoSprite from "../components/IsoSprite";
 import Transform from "../components/Transform";
 import { syncPlayerSpriteAnimation } from "../animation/playerSprite";
 import { getViewportScale, TILE_HEIGHT, TILE_WIDTH } from "../config";
@@ -40,10 +40,10 @@ export default class RenderSystem implements System {
     const originX = this.app.screen.width / 2;
     const originY = this.app.screen.height / 2;
 
-    const entities = engine.getEntitiesWith([Transform, Renderable]);
+    const entities = engine.getEntitiesWith([Transform, IsoSprite]);
     for (const entity of entities) {
       const transform = engine.getComponent(entity, Transform)! as Transform;
-      const visual = engine.getComponent(entity, Renderable)! as Renderable;
+      const visual = engine.getComponent(entity, IsoSprite)! as IsoSprite;
       const playerState = engine.getComponent(entity, PlayerControlled) as
         | PlayerControlled
         | undefined;
@@ -52,7 +52,7 @@ export default class RenderSystem implements System {
 
       visual.sprite.x = originX + (screenPos.x - cameraScreen.x) * scale;
       visual.sprite.y = originY + (screenPos.y - cameraScreen.y) * scale;
-      visual.sprite.scale.set(scale);
+      visual.sprite.scale.set(scale * visual.scale);
 
       if (playerState && visual.sprite instanceof AnimatedSprite) {
         syncPlayerSpriteAnimation(

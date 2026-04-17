@@ -4,7 +4,7 @@ import { Component } from "../core/types";
 export default class IsoSprite extends Component {
   static componentType = 'IsoSprite';
 
-  constructor(public sprite: Sprite) {
+  constructor(public sprite: Sprite, public scale: number = 1) {
     super();
   }
 
