@@ -19,6 +19,33 @@ function generateExpression(spec: GenSpec): Expression {
   return genNode(randInt(1, spec.maxDepth));
 }
 
+export function evalExpr(expr: Expression) : number {
+  if (expr.kind === "num") return expr.value;
+    const l = evalExpr(expr.left),
+    r = evalExpr(expr.right);
+  switch (expr.op) {
+    case "+":
+      return l + r;
+    case "-":
+      return Math.abs(l - r); // keep positive for grade 1-2
+    case "*":
+      return l * r;
+    case "/":
+      return r !== 0 ? Math.round(l / r) : l;
+    default:
+      return 0;
+  }
+}
+
+export function exprToString(expr: Expression): String {
+  if (expr.kind === "num") return String(expr.value);
+  const sym = { "+": "+", "-": "−", "*": "×", "/": "÷" }[expr.op] || expr.op;
+  const l = exprToString(expr.left),
+    r = exprToString(expr.right);
+  const inner = `${l} ${sym} ${r}`;
+  return inner;
+}
+
 export function generateProblem(grade: number) : MathProblem {
   const spec: GenSpec = GRADE_TO_SPEC[grade];
   if (!spec) throw new Error(`No spec found for grade: ${grade}`)
