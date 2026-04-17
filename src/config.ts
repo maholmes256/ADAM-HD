@@ -1,5 +1,5 @@
-export const TILE_WIDTH = 32;
-export const TILE_HEIGHT = 16;
+export const TILE_WIDTH = 220;
+export const TILE_HEIGHT = 100;
 export const VIEWPORT_PADDING = 0.9;
 export const CAMERA_VIEW_FRACTION = 0.3;
 export const PLAYER_SPEED = 8;
