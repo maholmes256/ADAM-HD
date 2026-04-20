@@ -1,4 +1,5 @@
-export type TileId = "sand" | "dirt";
+export type TileId = "sand" | "grass" | "water" | "waterC" | "waterCN" | "dirt" | "dirtS" | "spawnpoint" | "pathH" | "pathV" | "pathCN" | "pathCS" | "pathCW" | "pathCE" | "grassRivE" | "grassRivW" | "grassRivS" | "grassRivN" | 
+"sandRivE" | "sandRivN";
 
 export type TileDef = {
   id: TileId;
