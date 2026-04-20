@@ -1,4 +1,4 @@
-export type TileId = "grass" | "dirt";
+export type TileId = "sand" | "dirt";
 
 export type TileDef = {
   id: TileId;
