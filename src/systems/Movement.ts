@@ -5,7 +5,8 @@ import { defaultMap } from "../data/defaultMap";
 import { Engine } from "../core/Engine";
 import { System } from "../core/types";
 import { gameState } from "../store/gameState";
-import { isometricToScreen, screenToIsometric } from "../utils/isometricMath";
+import { uiState } from "../store/uiState";
+import { screenToIsometric } from "../utils/isometricMath";
 
 const ACTIVE_KEYS = new Set([
   "ArrowUp",
@@ -30,6 +31,19 @@ export default class MovementSystem implements System {
   }
 
   tick(delta: number, engine: Engine) {
+    if (uiState.getSnapshot().overlayOpen) {
+      const players = engine.getEntitiesWith([PlayerControlled, Transform]);
+      for (const entity of players) {
+        const player = engine.getComponent(entity, PlayerControlled) as
+          | PlayerControlled
+          | undefined;
+        if (player) {
+          player.isMoving = false;
+        }
+      }
+      return;
+    }
+
     const direction = this.getDirection();
     const screenDistance = this.speed * TILE_HEIGHT * (delta / 1000);
     const moveX = direction.x * screenDistance;

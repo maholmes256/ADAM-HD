@@ -10,9 +10,12 @@ export class Engine {
   }
 
   public destroyEntity(entity: Entity): void {
-    // Remove all components associated with this entity
     for (const store of this.components.values()) {
-      store.delete(entity);
+      const component = store.get(entity);
+      if (component) {
+        component.destroy();
+        store.delete(entity);
+      }
     }
   } 
 
@@ -49,7 +52,7 @@ export class Engine {
   }
 
   public removeComponent(entity: Entity, componentClass: any): void {
-    const store = this.components.get(componentClass.type);
+    const store = this.components.get(componentClass.componentType);
     if (store) {
       const component = store.get(entity);
       if (component) {

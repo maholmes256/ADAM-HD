@@ -21,7 +21,7 @@ export default class RenderSystem implements System {
     app.stage.addChild(this.container);
   }
 
-  tick(dt: number, engine: Engine) {
+  tick(_dt: number, engine: Engine) {
     const camera = gameState.camera;
     const scale = getViewportScale(
       this.app.screen.width,

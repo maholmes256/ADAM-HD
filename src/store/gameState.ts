@@ -1,3 +1,5 @@
+import type { Engine } from "../core/Engine";
+
 export type CameraState = {
   x: number;
   y: number;
@@ -5,11 +7,12 @@ export type CameraState = {
   scale: number;
 };
 
-export const gameState: { camera: CameraState } = {
+export const gameState: { camera: CameraState; world: Engine | null } = {
   camera: {
     x: 0,
     y: 0,
     z: 0,
     scale: 1,
   },
+  world: null,
 };
