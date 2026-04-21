@@ -873,7 +873,7 @@ function RelicDig({ problem, exprStr, correctAnswer, grade, onResult }) {
           return (
             <div
               key={val}
-              className={`relic-choice ${revealed ? `revealed ${state}` : ""}`}
+              className={`relic-choice ${revealed ? `revealed ${(state=="correct" && val==correctAnswer)?"correct" : "wrong"}` : ""}`}
               onClick={() => pick(val)}
             >
               {!revealed && <div className="relic-dust" />}
