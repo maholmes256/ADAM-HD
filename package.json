@@ -12,32 +12,31 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "pixi.js": "^8.8.1",
     "framer-motion": "^12.38.0",
+    "pixi.js": "^8.8.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
-
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.4.1",
-    "eslint": "^9.21.0",
     "autoprefixer": "^10.4.27",
+    "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "postcss": "^8.5.8",
     "prettier": "^3.5.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "tailwindcss": "^4.2.2",
     "typescript": "~5.7.3",
     "typescript-eslint": "^8.25.0",
-    "tailwindcss": "^4.2.2",
-    "vite": "^5.4.18",
-    "vitest": "^2.1.9",
-    "globals": "^17.4.0",
-    "postcss": "^8.5.8"
+    "vite": "^8.0.9",
+    "vitest": "^4.1.5"
   }
 }
