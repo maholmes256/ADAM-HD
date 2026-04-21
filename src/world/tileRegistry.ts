@@ -10,6 +10,11 @@ export const tileRegistry: Record<TileId, TileDef> = {
     texture: "/assets/tiles/dirt_center_S.png",
   },
 
+  tile: {
+    id: "tile",
+    texture: "/assets/tiles/tiles_E.png",
+  },
+
   grass: {
     id: "grass",
     texture: "/assets/tiles/grass_center_S.png",
