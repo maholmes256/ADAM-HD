@@ -1155,7 +1155,7 @@ export default function ProblemOverlay({
   const [problemNum, setProblemNum] = useState(1);
   const [animKey, setAnimKey] = useState(0);
 
-  const exprStr = exprToString(problem.expr);
+  const exprStr = exprToString(problem.expr).slice(1,-1);
   const correctAnswer = evalExpr(problem.expr);
   const exprLen = exprStr.length;
   const exprSize = exprLen > 20 ? "sz-sm" : exprLen > 12 ? "sz-md" : "sz-lg";
