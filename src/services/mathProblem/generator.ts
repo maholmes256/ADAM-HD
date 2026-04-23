@@ -12,6 +12,9 @@ function generateExpression(spec: GenSpec): Expression {
     const op = spec.ops[randInt(0, spec.ops.length - 1)];
     let left = genNode(depth - 1);
     let right = genNode(depth - 1);
+    if (evalExpr(left) < evalExpr(right)){
+      [left, right] = [right, left];
+    }
 
     return {kind: "expr", op: op, left: left, right: right};
   }
