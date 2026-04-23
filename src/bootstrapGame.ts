@@ -18,16 +18,22 @@ import { gameState } from "./store/gameState";
 import { uiState } from "./store/uiState";
 import { tileRegistry } from "./world/tileRegistry";
 import OrbInteractionSystem from "./systems/OrbInteractionSystem";
+import { number } from "framer-motion";
 
 const CHARACTER_SPRITE_PATH = "/assets/character.png";
 const MIN_ORB_COUNT = 20;
-const orbTexture = await Assets.load('/public/assets/orb.png');
+const orbTexture = await Assets.load('/assets/orb.png');
+const treeTexture = await Assets.load('assets/tiles/tree_S.png')
+const treesTexture = await Assets.load('assets/tiles/trees_N.png')
+const rockTexture = await Assets.load('assets/tiles/rocks_W.png')
+const houseTexture = await Assets.load('assets/tiles/building_sides_N.png')
+const cactusTexture = await Assets.load('assets/tiles/cactus.png')
 
 export default async function bootstrap(): Promise<void> {
   const world = new Engine();
   const app = new Application();
 
-  await app.init({ background: "#1099bb", resizeTo: window });
+  await app.init({ background: "#A9C6E6", resizeTo: window });
   app.canvas.style.imageRendering = "pixelated";
   document.getElementById("pixi-container")!.appendChild(app.canvas);
 
@@ -60,6 +66,77 @@ export default async function bootstrap(): Promise<void> {
   world.addComponent(player, new IsoSprite(playerSprite, 4.5));
   world.addComponent(player, new Transform(PLAYER_START_X, PLAYER_START_Y, 0));
   world.addComponent(player, playerControlled);
+
+  
+
+  //const listTrees = [{1, 2}, 2, 3];
+interface coords {x:number, y: number};
+const treeList: coords[] = [
+  {x: -5, y: 1},
+  {x: 3.75, y: 4}
+];
+treeList.forEach(({x, y}) => {
+    const tree = world.createEntity();
+    const treeSprite = new Sprite(treeTexture);
+    world.addComponent(tree, new Transform(x, y, 0.25));
+    world.addComponent(tree, new IsoSprite(treeSprite, 1.8));
+});
+
+const treesList: coords[] = [
+  {x: 0, y: -2.3},
+];
+treesList.forEach(({x, y}) => {
+    const trees = world.createEntity();
+    const treesSprite = new Sprite(treesTexture);
+    world.addComponent(trees, new Transform(x, y, 0.25));
+    world.addComponent(trees, new IsoSprite(treesSprite, 1.5));
+});
+
+const rockList: coords[] = [
+  {x: 12, y: 2.5,},
+  {x: 11.5, y: 2},
+  {x: 25, y: 5},
+  {x: 1, y: 25},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  {x: 11.5, y: 2},
+  
+];
+rockList.forEach(({x, y}) => {
+    const rock = world.createEntity();
+    const rockSprite = new Sprite(rockTexture);
+    world.addComponent(rock, new Transform(x, y, 0.25));
+    world.addComponent(rock, new IsoSprite(rockSprite, 0.4));
+});
+
+const cactusList: coords[] = [
+  {x: 8.4, y: -0.5,},
+];
+cactusList.forEach(({x, y}) => {
+    const cactus = world.createEntity();
+    const cactusSprite = new Sprite(cactusTexture);
+    world.addComponent(cactus, new Transform(x, y, 0.25));
+    world.addComponent(cactus, new IsoSprite(cactusSprite, 0.25));
+});
+
+const houseList: coords[] = [
+  {x: 9.4, y: -1.65,},
+];
+houseList.forEach(({x, y}) => {
+    const house = world.createEntity();
+    const houseSprite = new Sprite(houseTexture);
+    world.addComponent(house, new Transform(x, y, 0.25));
+    world.addComponent(house, new IsoSprite(houseSprite, 0.8));
+});
+
+
+
 
   gameState.camera.x = PLAYER_START_X;
   gameState.camera.y = PLAYER_START_Y;

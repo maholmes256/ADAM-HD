@@ -45,7 +45,7 @@ export function exprToString(expr: Expression): String {
   const sym = { "+": "+", "-": "−", "*": "×", "/": "÷" }[expr.op] || expr.op;
   const l = exprToString(expr.left),
     r = exprToString(expr.right);
-  const inner = `${l} ${sym} ${r}`;
+  const inner = `(${l} ${sym} ${r})`;
   return inner;
 }
 
