@@ -64,7 +64,7 @@ export default async function bootstrap(): Promise<void> {
   const playerSprite = createPlayerSprite(playerControlled.facing);
 
   world.addComponent(player, new IsoSprite(playerSprite, 4.5));
-  world.addComponent(player, new Transform(PLAYER_START_X, PLAYER_START_Y, -.25));
+  world.addComponent(player, new Transform(PLAYER_START_X, PLAYER_START_Y, 1));
   world.addComponent(player, playerControlled);
 
   
