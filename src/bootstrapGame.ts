@@ -73,7 +73,8 @@ export default async function bootstrap(): Promise<void> {
 interface coords {x:number, y: number};
 const treeList: coords[] = [
   {x: -5, y: 1},
-  {x: 3.75, y: 4}
+  {x: 3.75, y: 4},
+  {x:31, y: 31},
 ];
 treeList.forEach(({x, y}) => {
     const tree = world.createEntity();
@@ -84,11 +85,12 @@ treeList.forEach(({x, y}) => {
 
 const treesList: coords[] = [
   {x: 0, y: -2.3},
+  {x:-5, y: 31.75},
 ];
 treesList.forEach(({x, y}) => {
     const trees = world.createEntity();
     const treesSprite = new Sprite(treesTexture);
-    world.addComponent(trees, new Transform(x, y, 0.25));
+    world.addComponent(trees, new Transform(x, y, 0.20));
     world.addComponent(trees, new IsoSprite(treesSprite, 1.5));
 });
 
@@ -98,14 +100,94 @@ const rockList: coords[] = [
   {x: 25, y: 5},
   {x: 1, y: 25},
   {x: 11.5, y: 2},
+  {x: -1.25, y: 10},
+  {x: -0.5, y: 11.25},
   {x: 11.5, y: 2},
   {x: 11.5, y: 2},
   {x: 11.5, y: 2},
   {x: 11.5, y: 2},
   {x: 11.5, y: 2},
   {x: 11.5, y: 2},
-  {x: 11.5, y: 2},
-  {x: 11.5, y: 2},
+{x: 18.21, y: 14.54},
+{x: 27.65, y: -0.32},
+{x: 9.43, y: 31.08},
+{x: 14.88, y: 22.17},
+{x: 21.03, y: -0.87},
+{x: -0.12, y: 34.22},
+{x: 16.76, y: 11.29},
+{x: 29.54, y: 2.33},
+{x: 4.87, y: 17.65},
+{x: 33.41, y: 0.12},
+{x: 11.23, y: 28.54},
+{x: 24.32, y: 13.11},
+{x: 19.56, y: 8.43},
+{x: 5.12, y: 25.87},
+{x: 31.04, y: 14.32},
+{x: 12.67, y: 1.23},
+{x: 26.89, y: 33.12},
+{x: 15.43, y: 18.76},
+{x: 34.54, y: 4.56},
+{x: 8.12, y: 21.34},
+{x: 22.76, y: 32.45},
+{x: 3.45, y: 16.54},
+{x: 28.12, y: 29.87},
+{x: 17.89, y: 12.43},
+{x: 30.12, y: 26.54},
+{x: 25.43, y: 19.21},
+{x: 10.12, y: 34.87},
+{x: 14.56, y: 15.67},
+{x: 33.21, y: 8.76},
+{x: 9.67, y: 23.45},
+{x: 21.43, y: 1.87},
+{x: 0.23, y: 31.23},
+{x: 16.54, y: -0.98},
+{x: 29.76, y: 14.21},
+{x: 5.67, y: 27.34},
+{x: 18.32, y: 3.45},
+{x: 32.45, y: 20.12},
+{x: 7.23, y: 13.56},
+{x: 24.56, y: 28.76},
+{x: 14.28, y: 3.12},
+{x: -0.56, y: 22.84},
+{x: 18.45, y: 29.37},
+{x: 7.62, y: 12.05},
+{x: 24.11, y: 34.28},
+{x: 31.87, y: 19.42},
+{x: 12.03, y: 8.67},
+{x: 20.36, y: 0.24},
+{x: 29.58, y: 15.76},
+{x: 11.25, y: 23.41},
+{x: -0.73, y: 10.18},
+{x: 16.94, y: 4.59},
+{x: 25.47, y: 33.02},
+{x: 22.64, y: 17.83},
+{x: 30.15, y: 6.72},
+{x: 4.22, y: 21.09},
+{x: 13.78, y: 32.44},
+{x: -0.95, y: 14.61},
+{x: 27.81, y: 0.88},
+{x: 6.44, y: 9.27},
+{x: 33.56, y: -0.65},
+{x: 10.09, y: 25.14},
+{x: 2.76, y: 18.39},
+{x: 21.53, y: 34.72},
+{x: 15.68, y: 2.11},
+{x: 28.29, y: 11.45},
+{x: -0.32, y: 30.67},
+{x: 32.41, y: 5.92},
+{x: 9.54, y: 20.28},
+{x: 23.87, y: -0.78},
+{x: 17.11, y: 13.96},
+{x: 0.45, y: 26.51},
+{x: 34.93, y: 8.04},
+{x: 11.72, y: 1.33},
+{x: 26.04, y: 31.17},
+{x: 14.96, y: 24.89},
+{x: -0.82, y: 16.43},
+{x: 30.77, y: 2.98},
+{x: 12.35, y: 27.56},
+{x: 21.19, y: 19.81},
+
   
 ];
 rockList.forEach(({x, y}) => {
@@ -117,11 +199,13 @@ rockList.forEach(({x, y}) => {
 
 const cactusList: coords[] = [
   {x: 8.4, y: -0.5,},
+  {x:2, y: 20},
+  {x:3.2, y: 16.64},
 ];
 cactusList.forEach(({x, y}) => {
     const cactus = world.createEntity();
     const cactusSprite = new Sprite(cactusTexture);
-    world.addComponent(cactus, new Transform(x, y, 0.25));
+    world.addComponent(cactus, new Transform(x, y, 0.15));
     world.addComponent(cactus, new IsoSprite(cactusSprite, 0.25));
 });
 
