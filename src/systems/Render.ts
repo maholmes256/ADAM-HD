@@ -52,6 +52,7 @@ export default class RenderSystem implements System {
 
       visual.sprite.x = originX + (screenPos.x - cameraScreen.x) * scale;
       visual.sprite.y = originY + (screenPos.y - cameraScreen.y) * scale;
+      
       visual.sprite.scale.set(scale * visual.scale);
 
       if (playerState && visual.sprite instanceof AnimatedSprite) {
@@ -62,7 +63,7 @@ export default class RenderSystem implements System {
         );
       }
 
-      visual.sprite.zIndex = (transform.x + transform.y) * 10;
+      visual.sprite.zIndex = transform.z;
 
       if (!visual.sprite.parent) {
         this.container.addChild(visual.sprite);
