@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 663ad0e676ebf775bc85365092c3ff7f5a905a72
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
