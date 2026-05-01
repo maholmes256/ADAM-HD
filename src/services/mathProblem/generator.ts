@@ -6,12 +6,19 @@ function randInt(min: number, max: number): number {
 }
 
 function generateExpression(spec: GenSpec): Expression {
-  function genNode(depth: number): Expression {
-    if (depth === 0) return {kind: "num", value: randInt(0, spec.maxNum)};
+
+  function genNode(depth: number, max: number = spec.maxNum): Expression {
+    if (depth === 0) return {kind: "num", value: randInt(0, max)};
     
     const op = spec.ops[randInt(0, spec.ops.length - 1)];
-    let left = genNode(depth - 1);
-    let right = genNode(depth - 1);
+    let nextMax = max;
+
+    if (op==='*') {
+      nextMax = spec.maxMultNum || max;
+    }
+
+    let left = genNode(depth - 1, nextMax);
+    let right = genNode(depth - 1, nextMax);
     if (evalExpr(left) < evalExpr(right)){
       [left, right] = [right, left];
     }
@@ -19,7 +26,7 @@ function generateExpression(spec: GenSpec): Expression {
     return {kind: "expr", op: op, left: left, right: right};
   }
 
-  return genNode(randInt(1, spec.maxDepth));
+  return genNode(randInt(spec.minDepth || 1, spec.maxDepth), spec.maxNum);
 }
 
 export function evalExpr(expr: Expression) : number {

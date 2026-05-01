@@ -7,7 +7,9 @@ export type Expression =
 export type GenSpec = {
   ops: Operator[];
   maxNum: number;
+  maxMultNum?: number;
   maxDepth: number;
+  minDepth?: number;
 }
 
 export type MathProblem = {
