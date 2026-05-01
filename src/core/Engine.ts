@@ -9,6 +9,16 @@ export class Engine {
     return this.nextEntityId++;
   }
 
+  public destroyEntity(entity: Entity): void {
+    for (const store of this.components.values()) {
+      const component = store.get(entity);
+      if (component) {
+        component.destroy();
+        store.delete(entity);
+      }
+    }
+  } 
+
   public getComponent<T extends Component>(entity: Entity, componentClass: ComponentClass<T>) {
     return this.components.get(componentClass.componentType)?.get(entity);
   }
@@ -18,6 +28,7 @@ export class Engine {
 
     const firstType = componentClasses[0].componentType;
     const store = this.components.get(firstType);
+
     if (!store) return [];
 
     let results = Array.from(store.keys());
@@ -30,6 +41,25 @@ export class Engine {
     }
 
     return results;
+  }
+
+  public addComponent(entity: Entity, component: Component) : void{
+    const type = (component.constructor as any).componentType;
+    if (!this.components.has(type)) {
+      this.components.set(type, new Map());
+    }
+    this.components.get(type)!.set(entity, component);
+  }
+
+  public removeComponent(entity: Entity, componentClass: any): void {
+    const store = this.components.get(componentClass.componentType);
+    if (store) {
+      const component = store.get(entity);
+      if (component) {
+        component.destroy();
+        store.delete(entity);
+      }
+    }
   }
 
   public addSystem(system: System){
