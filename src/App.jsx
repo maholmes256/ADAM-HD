@@ -3,10 +3,14 @@ import { gameState } from "./store/gameState";
 import { uiState } from "./store/uiState";
 import ProblemOverlay from "./ui/ProblemGeneration";
 import NumberRaiders from "./ui/NumberRaiders";
+import { useAuth } from "./firebase/AuthContext";
+
+const XP_PER_CORRECT_PROBLEM = 100;
 
 export default function App() {
   const state = useSyncExternalStore(uiState.subscribe, uiState.getSnapshot);
   const [view, setView] = useState("hub");
+  const { currentUser, awardXp } = useAuth();
 
   function returnToHub() {
     uiState.closeProblemOverlay();
@@ -65,8 +69,15 @@ export default function App() {
         <ProblemOverlay
           grade={state.activeGrade}
           onClose={closeOverlayAndConsumeOrb}
-          onProblemSolved={(problemId, correct, grade) => {
+          onProblemSolved={async (problemId, correct, grade) => {
             console.log(problemId, correct, grade);
+            if (!correct || !currentUser?.id) return;
+
+            try {
+              await awardXp(XP_PER_CORRECT_PROBLEM);
+            } catch (error) {
+              console.warn("Firebase XP update failed", error);
+            }
           }}
         />
       )}
