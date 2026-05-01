@@ -11,11 +11,7 @@ function generateExpression(spec: GenSpec): Expression {
     if (depth === 0) return {kind: "num", value: randInt(0, max)};
     
     const op = spec.ops[randInt(0, spec.ops.length - 1)];
-    let nextMax = max;
-
-    if (op==='*') {
-      nextMax = spec.maxMultNum || max;
-    }
+    let nextMax = op==='*' ? spec.maxMultNum : max;
 
     let left = genNode(depth - 1, nextMax);
     let right = genNode(depth - 1, nextMax);

@@ -6,5 +6,5 @@ export const GRADE_TO_SPEC: Record<number, GenSpec> = {
   2: {ops: ['+', '-'], maxNum: 99, maxDepth: 1},
   3: {ops: ['+', '-', '*'], maxNum: 999, maxMultNum: 12, maxDepth: 1},
   4: {ops: ['+', '-', '*'], maxNum: 9999, maxMultNum: 99, maxDepth: 1},
-  5: {ops: ['+', '-', '*'], maxNum: 12, maxDepth: 2, minDepth: 2}
+  5: {ops: ['+', '-', '*'], maxNum: 20, maxDepth: 2, minDepth: 2}
 };
