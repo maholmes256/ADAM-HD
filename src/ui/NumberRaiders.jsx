@@ -1,4 +1,11 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  getChildrenByParent,
+  getStudentsByGrade,
+  getUsersByRole,
+  resetAchievements,
+} from "../firebase/userQueries";
+import { useAuth } from "../firebase/AuthContext";
 
 const Icon = ({ name, size = 20, color = "currentColor" }) => {
   const icons = {
@@ -749,6 +756,59 @@ const ACHIEVEMENTS = [
   },
 ];
 
+const SHOW_ACHIEVEMENTS_UI = false;
+
+function initialsFor(name = "", email = "") {
+  const source = name || email || "Explorer";
+  return source
+    .split(/[ ._@-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function normalizeStudentProfile(user, index = 0) {
+  const displayName = user.displayName || user.name || user.email || `Student ${index + 1}`;
+  const accuracy = user.accuracy ?? user.acc ?? 0;
+
+  return {
+    id: user.id || user.userID || index + 1,
+    name: displayName.toUpperCase(),
+    init: initialsFor(displayName, user.email),
+    level: Number(user.level || user.grade || 1),
+    xp: Number(user.xp || 0),
+    acc: Number(accuracy),
+    streak: Number(user.streak || 0),
+    achievements: user.achievements || [],
+  };
+}
+
+function screenForRole(role) {
+  return role === "parent" ? "parent" : role === "teacher" ? "teacher" : "student";
+}
+
+function xpForLevel(level) {
+  return Math.max(0, (Number(level || 1) - 1) * 200);
+}
+
+function QueryNotice({ loading, error, fallback }) {
+  if (!loading && !error && !fallback) return null;
+
+  return (
+    <div
+      className="px-badge badge-rust"
+      style={{ marginBottom: 12, lineHeight: 1.6 }}
+    >
+      {loading
+        ? "SYNCING FIREBASE..."
+        : error
+          ? "FIREBASE UNAVAILABLE - SHOWING LOCAL DATA"
+          : "NO FIREBASE DATA YET - SHOWING LOCAL DATA"}
+    </div>
+  );
+}
+
 function PixelBar({ pct, colorClass = "bar-sand", label, showPct = true }) {
   return (
     <div>
@@ -787,7 +847,7 @@ function PixelBar({ pct, colorClass = "bar-sand", label, showPct = true }) {
   );
 }
 
-function StudentRow({ s, showReset }) {
+function StudentRow({ s, showReset, onReset }) {
   return (
     <div className="student-row">
       <div className="student-avatar">{s.init}</div>
@@ -829,17 +889,39 @@ function StudentRow({ s, showReset }) {
         </div>
       </div>
       {showReset && (
-        <button className="px-btn px-btn-red px-btn-sm">RESET</button>
+        <button
+          className="px-btn px-btn-red px-btn-sm"
+          onClick={() => onReset?.(s.id)}
+        >
+          RESET
+        </button>
       )}
     </div>
   );
 }
 
-function StudentDashScreen({ onNavigate }) {
-  const [mode, setMode] = useState("solo");
+function StudentDashScreen({ firebaseState }) {
+  const { currentUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const displayName = currentUser?.displayName || currentUser?.email || "Dr. Henry Jones Jr.";
+  const email = currentUser?.email || "indy@marshall.edu";
+  const level = Number(currentUser?.level || 1);
+  const xp = Number(currentUser?.xp || 0);
+  const grade = Number(currentUser?.grade || 1);
+  const currentLevelXp = xpForLevel(level);
+  const nextLevelXp = xpForLevel(level + 1);
+  const xpIntoLevel = Math.max(0, xp - currentLevelXp);
+  const xpNeeded = nextLevelXp - currentLevelXp;
+  const xpPct = Math.min(100, Math.round((xpIntoLevel / xpNeeded) * 100));
+  const earned = new Set(currentUser?.achievements || []);
+  const achievements = ACHIEVEMENTS.map((achievement) => ({
+    ...achievement,
+    earned: achievement.earned || earned.has(achievement.name) || earned.has(achievement.id),
+  }));
+
   return (
     <div className="container" style={{ paddingTop: 32, paddingBottom: 40 }}>
+      <QueryNotice {...firebaseState} />
       {/* Hero dialogue */}
       <div
         className="dialogue-box"
@@ -883,8 +965,57 @@ function StudentDashScreen({ onNavigate }) {
       </div>
 
       <div style={{ display: "grid", gap: 20 }}>
+        <div className="px-box" style={{ padding: 24 }}>
+          <div className="flex-between" style={{ marginBottom: 14 }}>
+            <div
+              className="section-header"
+              style={{ marginBottom: 0, border: "none", paddingBottom: 0 }}
+            >
+              EXPEDITION RANK
+            </div>
+            <span className="px-badge badge-sand" style={{ fontSize: 8 }}>
+              GRADE {grade}
+            </span>
+          </div>
+          <div className="flex-between" style={{ gap: 18, alignItems: "center" }}>
+            <div>
+              <div
+                style={{
+                  fontFamily: "var(--font-pixel)",
+                  fontSize: 22,
+                  color: "var(--sand)",
+                  textShadow: "2px 2px 0 var(--sand2)",
+                  lineHeight: 1.4,
+                }}
+              >
+                LV {level}
+              </div>
+              <div className="vt" style={{ color: "var(--gray)", fontSize: 18 }}>
+                {xpIntoLevel} / {xpNeeded} XP TO NEXT LEVEL
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <PixelBar pct={xpPct} colorClass="bar-sand" />
+              <div
+                className="flex-between"
+                style={{
+                  marginTop: 8,
+                  fontFamily: "var(--font-pixel)",
+                  fontSize: 7,
+                  color: "var(--gray)",
+                }}
+              >
+                <span>{xp} TOTAL XP</span>
+                <span>NEXT LV {level + 1}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Right: relic vault */}
         <div className="px-box" style={{ padding: 24 }}>
+          {SHOW_ACHIEVEMENTS_UI && (
+            <>
           <div className="flex-between" style={{ marginBottom: 16 }}>
             <div
               className="section-header"
@@ -899,14 +1030,14 @@ function StudentDashScreen({ onNavigate }) {
                 color: "var(--gray)",
               }}
             >
-              2 / 6
+              {achievements.filter((a) => a.earned).length} / {achievements.length}
             </span>
           </div>
 
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
           >
-            {ACHIEVEMENTS.map((a) => (
+            {achievements.map((a) => (
               <div
                 key={a.id}
                 style={{
@@ -953,6 +1084,8 @@ function StudentDashScreen({ onNavigate }) {
               </div>
             ))}
           </div>
+            </>
+          )}
 
           <div className="px-divider mt-20" style={{ marginTop: 20 }}>
             <div className="px-divider-line" />
@@ -981,7 +1114,7 @@ function StudentDashScreen({ onNavigate }) {
                     color: "var(--sand)",
                   }}
                 >
-                  Dr. Henry Jones Jr.
+                  {displayName}
                 </div>
               </div>
               <div>
@@ -1003,55 +1136,7 @@ function StudentDashScreen({ onNavigate }) {
                     color: "var(--sand)",
                   }}
                 >
-                  indy@marshall.edu
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-pixel)",
-                    fontSize: 7,
-                    color: "var(--gray)",
-                    marginBottom: 6,
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  PASSWORD
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    defaultValue="MySecurePass123"
-                    readOnly
-                    style={{
-                      flex: 1,
-                      background: "#060401",
-                      border: "3px solid var(--border2)",
-                      padding: "11px 14px",
-                      color: "var(--sand)",
-                      fontFamily: "var(--font-pixel)",
-                      fontSize: 9,
-                      outline: "none",
-                      boxShadow: "inset 2px 2px 0 0 var(--black)",
-                    }}
-                  />
-                  <button
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    style={{
-                      background: "var(--leather)",
-                      border: "3px solid var(--border2)",
-                      padding: "8px 12px",
-                      color: "var(--sand)",
-                      cursor: "pointer",
-                      fontFamily: "var(--font-pixel)",
-                      fontSize: 9,
-                      boxShadow: "2px 2px 0 0 var(--black)",
-                      transition: "all 0.06s",
-                    }}
-                    onMouseDown={(e) => e.preventDefault()}
-                  >
-                    {showPassword ? "HIDE" : "SHOW"}
-                  </button>
+                  {email}
                 </div>
               </div>
             </div>
@@ -1085,8 +1170,9 @@ function GameScreen({ onNavigate }) {
     e.preventDefault();
     const val = parseInt(answer.trim(), 10);
     if (isNaN(val)) return;
+    const isCorrect = true;
     setTurn((t) => t + 1);
-    if (true) {
+    if (isCorrect) {
       setState("correct");
       setFeedback("CORRECT! +100 XP");
       const ns = score + 1;
@@ -1113,7 +1199,7 @@ function GameScreen({ onNavigate }) {
 
   return (
     <div className="container" style={{ paddingTop: 24, paddingBottom: 40 }}>
-      {showAchieve && (
+      {SHOW_ACHIEVEMENTS_UI && showAchieve && (
         <div className="overlay">
           <div className="achievement-popup">
             <div className="achieve-icon">
@@ -1312,11 +1398,14 @@ function GameScreen({ onNavigate }) {
   );
 }
 
-function ParentDashboard({ onNavigate }) {
+function ParentDashboard({ onNavigate, students, firebaseState }) {
   const [sel, setSel] = useState(0);
-  const s = STUDENTS[sel];
+  const roster = students.length ? students : STUDENTS.slice(0, 2);
+  const s = roster[Math.min(sel, roster.length - 1)] || STUDENTS[0];
+
   return (
     <div className="container" style={{ paddingTop: 28, paddingBottom: 40 }}>
+      <QueryNotice {...firebaseState} fallback={!students.length} />
       <div className="flex-between" style={{ marginBottom: 20 }}>
         <div
           style={{
@@ -1340,7 +1429,7 @@ function ParentDashboard({ onNavigate }) {
         <div className="px-box" style={{ padding: 22 }}>
           <div className="section-header">MANAGE CHILDREN</div>
           <div className="menu-list">
-            {STUDENTS.slice(0, 2).map((st, i) => (
+            {roster.map((st, i) => (
               <div
                 key={st.id}
                 className={`menu-item ${sel === i ? "selected" : ""}`}
@@ -1452,18 +1541,20 @@ function ParentDashboard({ onNavigate }) {
   );
 }
 
-function TeacherDashboard({ onNavigate }) {
+function TeacherDashboard({ onNavigate, students, firebaseState, onResetAchievements }) {
   const [tab, setTab] = useState("class");
   const [cls, setCls] = useState("PERIOD 3");
+  const roster = students.length ? students : STUDENTS;
   const avgAcc = Math.round(
-    STUDENTS.reduce((s, x) => s + x.acc, 0) / STUDENTS.length,
+    roster.reduce((s, x) => s + x.acc, 0) / roster.length,
   );
   const avgLv = Math.round(
-    STUDENTS.reduce((s, x) => s + x.level, 0) / STUDENTS.length,
+    roster.reduce((s, x) => s + x.level, 0) / roster.length,
   );
 
   return (
     <div className="container" style={{ paddingTop: 28, paddingBottom: 40 }}>
+      <QueryNotice {...firebaseState} fallback={!students.length} />
       <div className="flex-between" style={{ marginBottom: 20 }}>
         <div
           style={{
@@ -1492,7 +1583,7 @@ function TeacherDashboard({ onNavigate }) {
 
       <div className="grid-4" style={{ marginBottom: 20 }}>
         <div className="stat-card">
-          <div className="stat-value">{STUDENTS.length}</div>
+          <div className="stat-value">{roster.length}</div>
           <div className="stat-label">STUDENTS</div>
         </div>
         <div className="stat-card">
@@ -1569,8 +1660,13 @@ function TeacherDashboard({ onNavigate }) {
 
         {tab === "students" && (
           <>
-            {STUDENTS.map((s) => (
-              <StudentRow key={s.id} s={s} showReset />
+            {roster.map((s) => (
+              <StudentRow
+                key={s.id}
+                s={s}
+                showReset={SHOW_ACHIEVEMENTS_UI}
+                onReset={onResetAchievements}
+              />
             ))}
             <button
               className="px-btn px-btn-leather mt-16"
@@ -1582,7 +1678,7 @@ function TeacherDashboard({ onNavigate }) {
         )}
 
         {tab === "data" &&
-          STUDENTS.map((s) => (
+          roster.map((s) => (
             <div key={s.id} className="student-row">
               <div className="student-avatar">{s.init}</div>
               <div style={{ flex: 1 }}>
@@ -1619,7 +1715,14 @@ function TeacherDashboard({ onNavigate }) {
               </div>
               <div className="flex gap-8">
                 <button className="px-btn px-btn-ghost px-btn-sm">VIEW</button>
-                <button className="px-btn px-btn-red px-btn-sm">RESET</button>
+                {SHOW_ACHIEVEMENTS_UI && (
+                  <button
+                    className="px-btn px-btn-red px-btn-sm"
+                    onClick={() => onResetAchievements?.(s.id)}
+                  >
+                    RESET
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -1628,7 +1731,8 @@ function TeacherDashboard({ onNavigate }) {
   );
 }
 
-function AccountScreen({ userType, onNavigate }) {
+function AccountScreen({ onNavigate }) {
+  const { currentUser, userType } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const accountRole =
     userType === "teacher"
@@ -1665,8 +1769,16 @@ function AccountScreen({ userType, onNavigate }) {
   );
 
   const defaultFields = [
-    { label: "DISPLAY NAME", type: "text", value: "Dr. Henry Jones Jr." },
-    { label: "EMAIL ADDRESS", type: "email", value: "indy@marshall.edu" },
+    {
+      label: "DISPLAY NAME",
+      type: "text",
+      value: currentUser?.displayName || "Dr. Henry Jones Jr.",
+    },
+    {
+      label: "EMAIL ADDRESS",
+      type: "email",
+      value: currentUser?.email || "indy@marshall.edu",
+    },
   ];
 
   return (
@@ -1687,7 +1799,15 @@ function AccountScreen({ userType, onNavigate }) {
         </div>
         <button
           className="px-btn px-btn-ghost"
-          onClick={() => onNavigate("student")}
+          onClick={() =>
+            onNavigate(
+              userType === "parent"
+                ? "parent"
+                : userType === "teacher"
+                  ? "teacher"
+                  : "student",
+            )
+          }
         >
           ◀ BACK
         </button>
@@ -1778,6 +1898,31 @@ function AccountScreen({ userType, onNavigate }) {
 function LoginScreen({ onLogin }) {
   const [creating, setCreating] = useState(false);
   const [role, setRole] = useState("student");
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [grade, setGrade] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function submitLogin() {
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await onLogin(creating ? role : null, {
+        creating,
+        displayName: displayName.trim(),
+        email: email.trim(),
+        password,
+        grade,
+      });
+    } catch (loginError) {
+      setError(loginError);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div
@@ -1856,6 +2001,8 @@ function LoginScreen({ onLogin }) {
             {creating && (
               <input
                 placeholder="DISPLAY NAME"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
                 style={{
                   background: "#060401",
                   border: "3px solid var(--border2)",
@@ -1872,6 +2019,8 @@ function LoginScreen({ onLogin }) {
             <input
               type="email"
               placeholder="EMAIL ADDRESS"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={{
                 background: "#060401",
                 border: "3px solid var(--border2)",
@@ -1887,6 +2036,8 @@ function LoginScreen({ onLogin }) {
             <input
               type="password"
               placeholder="PASSWORD"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               style={{
                 background: "#060401",
                 border: "3px solid var(--border2)",
@@ -1899,12 +2050,31 @@ function LoginScreen({ onLogin }) {
                 width: "100%",
               }}
             />
+            {creating && role === "student" && (
+              <select value={grade} onChange={(e) => setGrade(e.target.value)}>
+                <option value={1}>GRADE 1</option>
+                <option value={2}>GRADE 2</option>
+                <option value={3}>GRADE 3</option>
+                <option value={4}>GRADE 4</option>
+                <option value={5}>GRADE 5</option>
+              </select>
+            )}
           </div>
+
+          {error && (
+            <div
+              className="px-badge badge-rust mt-12"
+              style={{ lineHeight: 1.6 }}
+            >
+              {error.message || "SIGN IN FAILED"}
+            </div>
+          )}
 
           <button
             className="px-btn px-btn-gold mt-20"
             style={{ width: "100%", fontSize: 11, padding: "14px" }}
-            onClick={() => onLogin(creating ? role : "student")}
+            onClick={submitLogin}
+            disabled={submitting}
           >
             ▶ {creating ? "CREATE ACCOUNT" : "SIGN IN"}
           </button>
@@ -1927,23 +2097,79 @@ export default function NumberRaiders({
   initialScreen = "home",
   onStartGame,
 }) {
-  const [userType, setUserType] = useState(null);
+  const { authReady, currentUser, userType, login, logout } = useAuth();
+  const [students, setStudents] = useState([]);
+  const [firebaseState, setFirebaseState] = useState({
+    loading: false,
+    error: null,
+    fallback: false,
+  });
   const [screen, setScreen] = useState(initialScreen);
   const [ddOpen, setDdOpen] = useState(false);
 
-  function login(role) {
-    setUserType(role);
-    setScreen(
-      role === "parent" ? "parent" : role === "teacher" ? "teacher" : "student",
+  useEffect(() => {
+    if (!authReady) return;
+    if (!userType || !currentUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStudents([]);
+      setScreen("home");
+      return;
+    }
+
+    setScreen((currentScreen) =>
+      currentScreen === "home" ? screenForRole(userType) : currentScreen,
     );
+    loadStudents(userType, currentUser);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authReady, userType, currentUser?.id, currentUser?.grade]);
+
+  async function loadStudents(role, user = currentUser) {
+    setFirebaseState({ loading: true, error: null, fallback: false });
+
+    try {
+      const docs =
+        role === "parent" && user?.id
+          ? await getChildrenByParent(user.id)
+          : role === "teacher"
+            ? await getUsersByRole("Student")
+            : await getStudentsByGrade(user?.grade || 1);
+
+      setStudents(docs.map(normalizeStudentProfile));
+      setFirebaseState({
+        loading: false,
+        error: null,
+        fallback: docs.length === 0,
+      });
+    } catch (error) {
+      console.warn("Firebase user query failed", error);
+      setStudents([]);
+      setFirebaseState({ loading: false, error, fallback: true });
+    }
   }
-  function logout() {
-    setUserType(null);
-    setScreen("home");
-    setDdOpen(false);
+
+  async function handleResetAchievements(userId) {
+    try {
+      await resetAchievements(userId);
+      await loadStudents(userType);
+    } catch (error) {
+      console.warn("Firebase reset failed", error);
+      setFirebaseState({ loading: false, error, fallback: true });
+    }
   }
 
   function navigate(nextScreen) {
+    if (userType && nextScreen === "home") {
+      setScreen(screenForRole(userType));
+      setDdOpen(false);
+      return;
+    }
+
+    if (!userType && nextScreen !== "home") {
+      setScreen("home");
+      setDdOpen(false);
+      return;
+    }
+
     if (nextScreen === "game") {
       if (userType) {
         onStartGame?.();
@@ -1959,6 +2185,16 @@ export default function NumberRaiders({
   }
 
   const SCREENS = ["home", "student", "game", "parent", "teacher"];
+  const visibleScreens = !authReady
+    ? []
+    : userType
+      ? SCREENS.filter(
+          (s) =>
+            s === "game" ||
+            s === userType ||
+            (userType === "student" && s === "student"),
+        )
+      : ["home"];
   const LABELS = {
     home: "HOME",
     student: "STUDENT DASH",
@@ -1966,6 +2202,20 @@ export default function NumberRaiders({
     parent: "PARENT DASH",
     teacher: "TEACHER DASH",
   };
+  const activeScreen = !authReady
+    ? null
+    : userType
+      ? screen === "home"
+        ? screenForRole(userType)
+        : screen
+      : "home";
+
+  async function handleLogout() {
+    await logout();
+    setStudents([]);
+    setScreen("home");
+    setDdOpen(false);
+  }
 
   return (
     <>
@@ -2014,7 +2264,7 @@ export default function NumberRaiders({
                       >
                         ★ DASHBOARD
                       </button>
-                      <button className="dropdown-item" onClick={logout}>
+                      <button className="dropdown-item" onClick={handleLogout}>
                         ✖ SIGN OUT
                       </button>
                     </>
@@ -2026,10 +2276,10 @@ export default function NumberRaiders({
         </nav>
 
         <div className="screen-nav">
-          {SCREENS.map((s) => (
+          {visibleScreens.map((s) => (
             <button
               key={s}
-              className={`snav-btn ${screen === s ? "active" : ""}`}
+              className={`snav-btn ${activeScreen === s ? "active" : ""}`}
               onClick={() => navigate(s)}
             >
               {LABELS[s]}
@@ -2037,10 +2287,32 @@ export default function NumberRaiders({
           ))}
         </div>
 
-        {screen === "home" && <LoginScreen onLogin={login} />}
-        {screen === "student" && <StudentDashScreen onNavigate={navigate} />}
-        {screen === "parent" && <ParentDashboard onNavigate={navigate} />}
-        {screen === "teacher" && <TeacherDashboard onNavigate={navigate} />}
+        {activeScreen === "home" && <LoginScreen onLogin={login} />}
+        {activeScreen === "student" && (
+          <StudentDashScreen
+            firebaseState={firebaseState}
+          />
+        )}
+        {activeScreen === "parent" && (
+          <ParentDashboard
+            onNavigate={navigate}
+            students={students}
+            firebaseState={firebaseState}
+          />
+        )}
+        {activeScreen === "teacher" && (
+          <TeacherDashboard
+            onNavigate={navigate}
+            students={students}
+            firebaseState={firebaseState}
+            onResetAchievements={handleResetAchievements}
+          />
+        )}
+        {activeScreen === "account" && (
+          <AccountScreen
+            onNavigate={navigate}
+          />
+        )}
       </div>
     </>
   );
