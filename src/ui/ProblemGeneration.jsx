@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { generateProblem, evalExpr, exprToString } from "../services/mathProblem/generator"
 import { GRADE_TO_SPEC } from "../services/mathProblem/specMap";
+import { storeProblem, validateAnswer } from "../firebase/problemQueries";
+import { useAuth } from "../firebase/AuthContext";
 
 // ── TYPES & LOGIC (mirrors your TS files) ─────────────────────────────────
 function randInt(min, max) {
@@ -1139,10 +1141,12 @@ function ResultScreen({
 // MAIN OVERLAY COMPONENT
 // ══════════════════════════════════════════════════════════════════════════
 export default function ProblemOverlay({
-  grade = 1,
+  grade: fallbackGrade = 1,
   onClose, // called when player dismisses (e.g. back to world)
   onProblemSolved, // callback(problemId, correct, grade)
 }) {
+  const { currentUser } = useAuth();
+  const grade = Number(currentUser?.grade || fallbackGrade || 1);
   const [problem, setProblem] = useState(() => generateProblem(grade));
   const [miniGame, setMiniGame] = useState(
     MINI_GAMES[randInt(0, MINI_GAMES.length - 1)],
@@ -1154,11 +1158,45 @@ export default function ProblemOverlay({
   const [result, setResult] = useState(null); // { correct, userAnswer }
   const [problemNum, setProblemNum] = useState(1);
   const [animKey, setAnimKey] = useState(0);
+  const [remoteProblem, setRemoteProblem] = useState(null);
+  const [firebaseError, setFirebaseError] = useState(null);
 
   const exprStr = exprToString(problem.expr).slice(1,-1);
   const correctAnswer = evalExpr(problem.expr);
   const exprLen = exprStr.length;
   const exprSize = exprLen > 20 ? "sz-sm" : exprLen > 12 ? "sz-md" : "sz-lg";
+  const playerLevel = Number(currentUser?.level || 1);
+  const playerXp = Number(currentUser?.xp || 0);
+  const currentLevelXp = Math.max(0, (playerLevel - 1) * 200);
+  const nextLevelXp = playerLevel * 200;
+  const xpIntoLevel = Math.max(0, playerXp - currentLevelXp);
+  const xpNeeded = nextLevelXp - currentLevelXp;
+  const xpPct = Math.min(100, Math.round((xpIntoLevel / xpNeeded) * 100));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    storeProblem(problem.expr, {
+      gradeLevel: grade,
+      difficulty: grade,
+      topic: "arithmetic",
+      type: "generated",
+    })
+      .then((id) => {
+        if (!cancelled) {
+          setRemoteProblem({ localId: problem.problemId, id });
+          setFirebaseError(null);
+        }
+      })
+      .catch((error) => {
+        console.warn("Firebase problem write failed", error);
+        if (!cancelled) setFirebaseError(error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [problem.problemId, grade, problem.expr]);
 
   // ── Start playing selected mini-game ────────────────────────────────────
   function startGame() {
@@ -1167,11 +1205,23 @@ export default function ProblemOverlay({
   }
 
   // ── Handle mini-game result ──────────────────────────────────────────────
-  function handleResult(correct, userAnswer) {
-    setResult({ correct, userAnswer });
+  async function handleResult(correct, userAnswer) {
+    let resolvedCorrect = correct;
+
+    if (remoteProblem?.localId === problem.problemId) {
+      try {
+        resolvedCorrect = await validateAnswer(remoteProblem.id, userAnswer);
+      } catch (error) {
+        console.warn("Firebase answer validation failed", error);
+        setFirebaseError(error);
+        resolvedCorrect = Number(userAnswer) === Number(correctAnswer);
+      }
+    }
+
+    setResult({ correct: resolvedCorrect, userAnswer });
     setPhase("result");
 
-    if (correct) {
+    if (resolvedCorrect) {
       setScore((s) => s + (streak >= 2 ? 150 : 100));
       setStreak((s) => s + 1);
     } else {
@@ -1179,7 +1229,11 @@ export default function ProblemOverlay({
       setStreak(0);
     }
 
-    onProblemSolved?.(problem.problemId, correct, grade);
+    onProblemSolved?.(
+      remoteProblem?.localId === problem.problemId ? remoteProblem.id : problem.problemId,
+      resolvedCorrect,
+      grade,
+    );
   }
 
   // ── Next problem ─────────────────────────────────────────────────────────
@@ -1300,6 +1354,45 @@ export default function ProblemOverlay({
               {/* Grade */}
               <div className="ov-grade-badge">GR.{grade}</div>
 
+              <div
+                style={{
+                  minWidth: 150,
+                  border: "2px solid var(--sand2)",
+                  background: "rgba(12, 8, 4, 0.86)",
+                  boxShadow: "2px 2px 0 0 var(--black)",
+                  padding: "6px 8px",
+                }}
+              >
+                <div
+                  className="flex-between"
+                  style={{
+                    fontFamily: "var(--fp)",
+                    fontSize: 7,
+                    color: "var(--sand)",
+                    marginBottom: 5,
+                  }}
+                >
+                  <span>LV {playerLevel}</span>
+                  <span>{xpIntoLevel}/{xpNeeded} XP</span>
+                </div>
+                <div
+                  style={{
+                    height: 8,
+                    background: "#080604",
+                    border: "2px solid var(--border)",
+                    boxShadow: "inset 1px 1px 0 0 var(--black)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${xpPct}%`,
+                      height: "100%",
+                      background: "linear-gradient(90deg, var(--sand2), var(--sand))",
+                    }}
+                  />
+                </div>
+              </div>
+
               {/* Problem counter */}
               <div
                 style={{
@@ -1339,6 +1432,15 @@ export default function ProblemOverlay({
                 >
                   = ?
                 </div>
+              </div>
+            )}
+
+            {firebaseError && (
+              <div
+                className="feedback-banner wrong"
+                style={{ fontSize: 7, padding: "8px 12px" }}
+              >
+                FIREBASE SYNC OFFLINE - LOCAL VALIDATION ACTIVE
               </div>
             )}
 
