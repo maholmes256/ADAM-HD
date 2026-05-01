@@ -10,23 +10,18 @@ import {
   orderBy,
   Timestamp,
 } from "firebase/firestore";
+import { evalExpr } from "../services/mathProblem/generator"
 
-
-export async function storeProblem(expr, spec) {
+export async function storeProblem(expr, spec = {}) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 12 * 60 * 60 * 1000);
+  const answer = evalExpr(expr);
 
   const docRef = await addDoc(collection(db, "problems"), {
-    expr: {
-      answer: expr.answer, 
-      left: expr.left,
-      op: expr.op,
-      right: expr.right, 
-    },
+    expr,
+    answer,
     spec: {
-      difficulty: spec.difficulty,
-      topic: spec.topic, 
-      type: spec.type, 
+      difficulty: spec.difficulty || spec.gradeLevel || spec.grade || null,
     },
     createdAt: Timestamp.fromDate(now),
     expiresAt: Timestamp.fromDate(expiresAt),
@@ -75,5 +70,5 @@ export async function getActiveProblems() {
 export async function validateAnswer(problemId, userAnswer) {
   const problem = await getProblem(problemId);
   if (!problem) throw new Error(`Problem ${problemId} not found`);
-  return userAnswer === problem.expr.answer;
+  return Number(userAnswer) === Number(problem.answer ?? evalExpr(problem.expr));
 }
