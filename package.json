@@ -12,7 +12,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@dataconnect/generated": "file:src/dataconnect-generated",
     "firebase": "^12.12.0",
     "framer-motion": "^12.38.0",
     "pixi.js": "^8.8.1",
