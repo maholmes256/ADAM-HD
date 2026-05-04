@@ -950,16 +950,6 @@ function StudentDashScreen({ firebaseState }) {
               Danger and equations await. Choose your expedition and press
               onward. Relics will not solve themselves!
             </div>
-            <div
-              style={{
-                fontFamily: "var(--font-pixel)",
-                fontSize: 7,
-                color: "var(--gray)",
-                marginTop: 8,
-              }}
-            >
-              ▼ PRESS ANY KEY TO CONTINUE <span className="blink">_</span>
-            </div>
           </div>
         </div>
       </div>
